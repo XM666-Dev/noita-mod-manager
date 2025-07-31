@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Config" load_steps=3 format=3 uid="uid://de2vj408ny2e8"]
+
+[ext_resource type="Script" uid="uid://dtywfxr2jpseh" path="res://scene/mod_element/mod_element.gd" id="1_fnsph"]
+[ext_resource type="Script" uid="uid://txij2y66pplf" path="res://scene/config/config.gd" id="2_jeyxm"]
+
+[resource]
+script = ExtResource("2_jeyxm")
+metadata/_custom_type_script = "uid://txij2y66pplf"

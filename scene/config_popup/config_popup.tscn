@@ -1,0 +1,54 @@
+[gd_scene load_steps=3 format=3 uid="uid://wu5lfu10qkkc"]
+
+[ext_resource type="Script" uid="uid://dwc60y02aj26y" path="res://scene/config_popup/config_popup.gd" id="1_mykxf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_58qek"]
+content_margin_left = 4.0
+
+[node name="ConfigPopup" type="Popup"]
+oversampling_override = 1.0
+title = "设置"
+initial_position = 1
+size = Vector2i(512, 256)
+visible = true
+borderless = false
+script = ExtResource("1_mykxf")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Control" type="Control" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_58qek")
+text = "游戏目录"
+
+[node name="GameDirEdit" type="LineEdit" parent="ScrollContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(256, 0)
+layout_mode = 2
+size_flags_horizontal = 10
+
+[node name="GameDirSelectButton" type="Button" parent="ScrollContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "选择"
+
+[node name="Control" type="Control" parent="ScrollContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[connection signal="editing_toggled" from="ScrollContainer/VBoxContainer/HBoxContainer/GameDirEdit" to="." method="_on_game_dir_edit_editing_toggled"]
+[connection signal="visibility_changed" from="ScrollContainer/VBoxContainer/HBoxContainer/GameDirEdit" to="." method="_on_game_dir_edit_visibility_changed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/HBoxContainer/GameDirSelectButton" to="." method="_on_game_dir_select_button_pressed"]

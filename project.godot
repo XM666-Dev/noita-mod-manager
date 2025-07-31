@@ -1,0 +1,35 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="NoitaModManager"
+run/main_scene="uid://cud4qdib2vggq"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+config/windows_native_icon="res://icon.ico"
+
+[display]
+
+window/size/borderless=true
+window/windows_native_icon="res://icon.ico"
+window/icon=""
+
+[dotnet]
+
+project/assembly_name="NoitaModManager"
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://resource/translation/translation.zh.translation")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

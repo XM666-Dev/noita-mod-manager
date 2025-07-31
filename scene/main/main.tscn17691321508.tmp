@@ -1,0 +1,65 @@
+[gd_scene load_steps=3 format=3 uid="uid://cud4qdib2vggq"]
+
+[ext_resource type="Script" uid="uid://b5b6b37784j24" path="res://scene/main/main.gd" id="1_am8c5"]
+[ext_resource type="Resource" uid="uid://de2vj408ny2e8" path="res://resource/config/default_config.tres" id="2_0imob"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_am8c5")
+default_config = ExtResource("2_0imob")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleBar" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/TitleBar"]
+layout_mode = 2
+text = "Noita模组管理器"
+
+[node name="ConfigButton" type="Button" parent="VBoxContainer/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "设置"
+flat = true
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/TitleBar"]
+layout_mode = 2
+text = "关闭"
+flat = true
+
+[node name="ModList" type="ItemList" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "选择游戏目录"
+mode_overrides_title = false
+file_mode = 2
+access = 2
+use_native_dialog = true
+
+[node name="AcceptDialog" type="AcceptDialog" parent="."]
+title = "错误"
+initial_position = 1
+force_native = true
+ok_button_text = "好的"
+dialog_text = "选择的目录不包含noita.exe实例，请重新选择！"
+
+[connection signal="gui_input" from="VBoxContainer/TitleBar" to="." method="_on_title_bar_gui_input"]
+[connection signal="pressed" from="VBoxContainer/TitleBar/ConfigButton" to="." method="_on_config_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/TitleBar/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="dir_selected" from="FileDialog" to="." method="_on_file_dialog_dir_selected"]
+[connection signal="confirmed" from="AcceptDialog" to="." method="_on_accept_dialog_confirmed"]
