@@ -11,9 +11,9 @@ static var mod_list: ModList = null
 static var file_dialog: FileDialog = null
 static var accept_dialog: AcceptDialog = null
 static var config_popup: Popup = null
+static var http_request: HTTPRequest = null
 static var config: Config = null
 static var mods: Array[Mod] = []
-#static var ugc_query_handle: int = 0
 
 @export var default_config: Config = null
 
@@ -22,6 +22,7 @@ func _ready() -> void:
 	file_dialog = %FileDialog
 	accept_dialog = %AcceptDialog
 	config_popup = %ConfigPopup
+	http_request = %HTTPRequest
 
 	config = default_config.duplicate(true)
 	var config_string := FileAccess.get_file_as_string(CONFIG_FILE)
@@ -32,29 +33,12 @@ func _ready() -> void:
 	if config.mod_config.is_empty():
 		read_mod_config()
 
-	Steam.steamInit(881100)
-
+	Steam.steamInit(881100, true)
 	var game_dir := get_game_dir()
 	if is_game_dir_valid(game_dir):
 		load_mod_list()
 		return
 	file_dialog.popup()
-
-	#Steam.ugc_query_completed.connect(func(handle: int, result: int, results_returned: int, total_matching: int, cached: bool) -> void:
-		#ugc_query_handle = handle
-		#print(handle)
-		#print(result)
-		#print(results_returned)
-	#)
-	#var ids := mods.map(func(mod: Mod) -> int: return mod.workshop_id).filter(func(id: int) -> bool: return id != 0)
-	#var array := [ids[0]]
-	#var query_handle := Steam.createQueryUGCDetailsRequest(array)
-	#Steam.setReturnAdditionalPreviews(query_handle, true)
-	#Steam.setReturnOnlyIDs(query_handle, true)
-	#Steam.sendQueryUGCRequest(query_handle)
-	#print(Steam.getQueryUGCResult(query_handle, 0))
-	#Steam.releaseQueryUGCRequest(query_handle)
-	#var previews := Steam.getQueryUGCNumAdditionalPreviews(ugc_query_handle, 0)
 
 func get_game_dir() -> String:
 	var game_dir := config.game_dir
@@ -76,21 +60,34 @@ func load_mod_list() -> void:
 	mods.clear()
 	load_mods()
 	load_mods(true)
-
 	mod_list.update()
 
 func load_mods(workshop: bool = false) -> void:
 	var mod_dirs: PackedStringArray = []
+	var subscribed_items: Array = []
 	if workshop:
-		var subscribed_items := Steam.getSubscribedItems()
+		subscribed_items = Steam.getSubscribedItems()
 		var folder_mapper := func(info: Dictionary) -> String: return info.folder
 		mod_dirs = subscribed_items.map(Steam.getItemInstallInfo).map(folder_mapper)
 	else:
 		var mods_path := get_game_dir().path_join(MODS_DIR)
 		mod_dirs = Array(DirAccess.get_directories_at(mods_path)).map(mods_path.path_join)
+
+	var new_mods: Array[Mod] = []
+	var mod_count := mod_dirs.size()
+	new_mods.resize(mod_count)
+	for mod_index in mod_count:
+		new_mods[mod_index] = Mod.new()
+
+	if workshop:
+		Steam.ugc_query_completed.connect(on_ugc_query_completed.bind(new_mods), CONNECT_ONE_SHOT)
+		var query_handle := Steam.createQueryUGCDetailsRequest(subscribed_items)
+		Steam.sendQueryUGCRequest(query_handle)
+
 	var parser = XMLParser.new()
-	for mod_dir in mod_dirs:
-		var mod := Mod.new()
+	for mod_index in mod_count:
+		var mod_dir := mod_dirs[mod_index]
+		var mod := new_mods[mod_index]
 		if workshop:
 			var mod_id_file := mod_dir.path_join("mod_id.txt")
 			mod.id = FileAccess.get_file_as_string(mod_id_file)
@@ -143,12 +140,30 @@ func load_mods(workshop: bool = false) -> void:
 				var workshop_tags_string: String = attributes.get("tags", "")
 				mod.workshop_tags = workshop_tags_string.split(",")
 
-		var workshop_preview_image_file := mod_dir.path_join("workshop_preview_image.png")
-		if FileAccess.file_exists(workshop_preview_image_file):
-			var workshop_preview_image := Image.load_from_file(workshop_preview_image_file)
-			mod.workshop_preview_image = ImageTexture.create_from_image(workshop_preview_image)
+		if workshop:
+			mod.workshop_preview_image = ImageTexture.new()
+		else:
+			var workshop_preview_image_file := mod_dir.path_join("workshop_preview_image.png")
+			if FileAccess.file_exists(workshop_preview_image_file):
+				var workshop_preview_image := Image.load_from_file(workshop_preview_image_file)
+				mod.workshop_preview_image = ImageTexture.create_from_image(workshop_preview_image)
 
-		mods.append(mod)
+	mods.append_array(new_mods)
+
+static func on_ugc_query_completed(handle: int, _result: int, results_returned: int, _total_matching: int, _cached: bool, new_mods: Array[Mod]) -> void:
+	for index in results_returned:
+		http_request.request_completed.connect(on_request_completed.bind(new_mods[index]), CONNECT_ONE_SHOT)
+		var url := Steam.getQueryUGCPreviewURL(handle, index)
+		var err := http_request.request(url)
+		if err == OK:
+			await http_request.request_completed
+	Steam.releaseQueryUGCRequest(handle)
+
+static func on_request_completed(_result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, mod: Mod) -> void:
+	var image := Image.new()
+	image.load_png_from_buffer(body)
+	var image_texture: ImageTexture = mod.workshop_preview_image
+	image_texture.set_image(image)
 
 static func find_mod(mod_element: ModElement) -> Mod:
 	var mod_finder := func(mod: Mod) -> bool:

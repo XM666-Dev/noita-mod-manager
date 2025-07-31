@@ -127,6 +127,10 @@ dialog_text = "选择的目录不包含noita.exe实例，请重新选择！"
 unique_name_in_owner = true
 visible = false
 
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+unique_name_in_owner = true
+use_threads = true
+
 [connection signal="gui_input" from="VBoxContainer/TitleBar" to="." method="_on_title_bar_gui_input"]
 [connection signal="pressed" from="VBoxContainer/TitleBar/ConfigButton" to="." method="_on_config_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TitleBar/CloseButton" to="." method="_on_close_button_pressed"]
