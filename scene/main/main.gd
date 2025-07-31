@@ -152,16 +152,35 @@ func load_mods(workshop: bool = false) -> void:
 
 static func on_ugc_query_completed(handle: int, _result: int, results_returned: int, _total_matching: int, _cached: bool, new_mods: Array[Mod]) -> void:
 	for index in results_returned:
-		http_request.request_completed.connect(on_request_completed.bind(new_mods[index]), CONNECT_ONE_SHOT)
+		var callable := on_request_completed.bind(new_mods[index])
+		http_request.request_completed.connect(callable, CONNECT_ONE_SHOT)
 		var url := Steam.getQueryUGCPreviewURL(handle, index)
 		var err := http_request.request(url)
 		if err == OK:
 			await http_request.request_completed
+		else:
+			http_request.request_completed.disconnect(callable)
 	Steam.releaseQueryUGCRequest(handle)
 
-static func on_request_completed(_result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, mod: Mod) -> void:
+static func on_request_completed(_result: int, _response_code: int, headers: PackedStringArray, body: PackedByteArray, mod: Mod) -> void:
+	var extension: String = ""
+	for header in headers:
+		var content_type := header.trim_prefix("Content-Type: ")
+		if content_type != header:
+			extension = content_type.trim_prefix("image/")
+			break
 	var image := Image.new()
-	image.load_png_from_buffer(body)
+	var loader: Callable = Callable()
+	match extension:
+		"png":
+			loader = image.load_png_from_buffer
+		"jpg", "jpeg":
+			loader = image.load_jpg_from_buffer
+		"webp":
+			loader = image.load_webp_from_buffer
+	var err: Error = loader.call(body)
+	if err != OK:
+		return
 	var image_texture: ImageTexture = mod.workshop_preview_image
 	image_texture.set_image(image)
 
