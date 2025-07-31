@@ -19,7 +19,6 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_am8c5")
 default_config = ExtResource("2_0imob")
-default_preview_image = ExtResource("3_qtsyf")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -64,6 +63,7 @@ theme_override_fonts/font = ExtResource("4_siuy0")
 select_mode = 1
 fixed_icon_size = Vector2i(64, 36)
 script = ExtResource("3_a0c6e")
+default_preview_image = ExtResource("3_qtsyf")
 
 [node name="PanelContainer" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(256, 0)
@@ -126,13 +126,12 @@ dialog_text = "选择的目录不包含noita.exe实例，请重新选择！"
 [node name="ConfigPopup" parent="." instance=ExtResource("3_6vuhr")]
 unique_name_in_owner = true
 visible = false
-force_native = false
 
 [connection signal="gui_input" from="VBoxContainer/TitleBar" to="." method="_on_title_bar_gui_input"]
 [connection signal="pressed" from="VBoxContainer/TitleBar/ConfigButton" to="." method="_on_config_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TitleBar/CloseButton" to="." method="_on_close_button_pressed"]
-[connection signal="item_activated" from="VBoxContainer/HBoxContainer/ModList" to="." method="_on_mod_list_item_activated"]
-[connection signal="item_clicked" from="VBoxContainer/HBoxContainer/ModList" to="." method="_on_mod_list_item_clicked"]
+[connection signal="item_activated" from="VBoxContainer/HBoxContainer/ModList" to="VBoxContainer/HBoxContainer/ModList" method="_on_item_activated"]
+[connection signal="item_clicked" from="VBoxContainer/HBoxContainer/ModList" to="VBoxContainer/HBoxContainer/ModList" method="_on_item_clicked"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer2/RefreshButton" to="." method="_on_refresh_button_pressed"]
 [connection signal="dir_selected" from="FileDialog" to="." method="_on_file_dialog_dir_selected"]
 [connection signal="confirmed" from="AcceptDialog" to="." method="_on_accept_dialog_confirmed"]

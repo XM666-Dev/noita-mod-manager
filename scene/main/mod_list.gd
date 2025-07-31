@@ -3,6 +3,8 @@ extends ItemList
 class DragData:
 	var selected_items: PackedInt32Array
 
+@export var default_preview_image: Texture2D = null
+
 func _get_drag_data(_at_position: Vector2) -> Variant:
 	var drag_data := DragData.new()
 	var selected_items := get_selected_items()
@@ -19,13 +21,6 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	var to_item := get_item_at_position(at_position)
 	var drag_data: DragData = data
 	var down := drag_data.selected_items[0] < to_item
-	#var i := 1
-	#var flag := drag_data.selected_items[0] < to_item
-	#if flag:
-	#if drag_data.selected_items[0] < to_item:
-		#to_item -= 1
-		#i = -1
-		#drag_data.selected_items.reverse()
 	if down:
 		drag_data.selected_items.reverse()
 	for selected_item in drag_data.selected_items:
@@ -34,47 +29,72 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		move_item(selected_item, to_item)
 		if !down:
 			to_item += 1
-		#print(selected_item, " to ", to_item)
-		#to_item += i
-		#to_item -= 1 if flag else -1
-		#if !flag:
-			#to_item += 1
-		#else:
-			#to_item -= 1
-		#else:
-		#if flag:
-			#to_item -= 1
-		#move_item_ordered(selected_item, to_item)
-		#to_item -= 1
-	#if to_item > drag_data.selected_items[0]:
-		#to_item -= 1
-		#to_item += 1
-	#var to_item := get_item_at_position_rect(at_position + get_scroll_amount())
+	Main.config.mod_config.clear()
+	for item_index in item_count:
+		var mod_element: ModElement = get_item_metadata(item_index)
+		Main.config.mod_config.append(mod_element)
+	Main.write_mod_config()
 
-#func move_item_ordered(from_idx: int, to_idx: int) -> void:
-	#if from_idx < to_idx:
-		#to_idx -= 1
-	#move_item(from_idx, to_idx)
-	#print(from_idx, " to ", to_idx)
+func update() -> void:
+	clear()
+	for mod_element in Main.config.mod_config:
+		var mod := Main.find_mod(mod_element)
+		if mod == null:
+			continue
+		var item_text := get_mod_item_text(mod_element)
+		var item_icon := get_mod_item_icon(mod_element)
+		var item_index := add_item(item_text, item_icon)
+		var item_bg_color := get_mod_item_bg_color(mod_element)
+		var item_icon_modulate := get_mod_item_icon_modulate(mod_element)
+		set_item_custom_bg_color(item_index, item_bg_color)
+		set_item_icon_modulate(item_index, item_icon_modulate)
+		set_item_tooltip(item_index, mod.description)
+		set_item_metadata(item_index, mod_element)
 
-#func get_item_at_position_rect(at_position: Vector2) -> int:
-	#for item_index in item_count:
-		#var item_rect := get_item_rect(item_index)
-		#if item_rect.has_point(at_position):
-			#return item_index
-	#return -1
+func get_mod_item_text(mod_element: ModElement) -> String:
+	var mod := Main.find_mod(mod_element)
+	var text := mod.name
+	if text.is_empty():
+		text = mod.id
+	if !mod_element.enabled:
+		text = "(已禁用) " + text
+	var tags: Array = mod.workshop_tags
+	if mod.workshop_id != 0:
+		tags.push_front("创意工坊")
+	var tags_string := ", ".join(tags.map(TranslationServer.translate))
+	var utf8_length := tags_string.to_utf8_buffer().size()
+	var unicode_length := tags_string.length()
+	@warning_ignore("integer_division")
+	var full_width_chars := (utf8_length - unicode_length) / 3
+	return IS.string_rpad(text, 80 - unicode_length - full_width_chars) + tags_string
 
-#func get_scroll_amount() -> Vector2:
-	#var h_scroll_bar := get_h_scroll_bar()
-	#var v_scroll_bar := get_v_scroll_bar()
-	#return Vector2(h_scroll_bar.value, v_scroll_bar.value)
+func get_mod_item_icon(mod_element: ModElement) -> Texture2D:
+	var mod := Main.find_mod(mod_element)
+	var item_icon := mod.workshop_preview_image
+	if item_icon != null:
+		return item_icon
+	return default_preview_image
 
-#func _process(delta: float) -> void:
-	#queue_redraw()
+func get_mod_item_bg_color(mod_element: ModElement) -> Color:
+	if mod_element.enabled:
+		return Color(0.5, 0.5, 0.5, 0.5)
+	return Color(0, 0, 0, 0)
 
-#func _draw() -> void:
-	#for item_index in item_count:
-		#var item_rect := get_item_rect(item_index)
-		#item_rect.position -= get_scroll_amount()
-		#var color := Color.from_hsv(fmod(item_index / 8.0, 1), 1, 1)
-		#draw_rect(item_rect, color, false)
+func get_mod_item_icon_modulate(mod_element: ModElement) -> Color:
+	if mod_element.enabled:
+		return Color.WHITE
+	return Color.DIM_GRAY
+
+
+func _on_item_activated(index: int) -> void:
+	var mod_element: ModElement = get_item_metadata(index)
+	mod_element.enabled = !mod_element.enabled
+	set_item_text(index, get_mod_item_text(mod_element))
+	set_item_custom_bg_color(index, get_mod_item_bg_color(mod_element))
+	set_item_icon_modulate(index, get_mod_item_icon_modulate(mod_element))
+	Main.write_mod_config()
+
+
+func _on_item_clicked(index: int, _at_position: Vector2, mouse_button_index: int) -> void:
+	if mouse_button_index == MOUSE_BUTTON_RIGHT:
+		_on_item_activated(index)

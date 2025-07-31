@@ -1,12 +1,13 @@
 class_name Main extends Control
 
+const ModList := preload("res://scene/main/mod_list.gd")
 const CONFIG_FILE: String = "user://config.json"
 const SAVE_DIR: String = "C:/Users/Administrator/AppData/LocalLow/Nolla_Games_Noita"
 const MOD_CONFIG_FILE: String = "save00/mod_config.xml"
 const EXECUTABLE_FILE: String = "noita.exe"
 const MODS_DIR: String = "mods"
 
-static var mod_list: ItemList = null
+static var mod_list: ModList = null
 static var file_dialog: FileDialog = null
 static var accept_dialog: AcceptDialog = null
 static var config_popup: Popup = null
@@ -15,7 +16,6 @@ static var mods: Array[Mod] = []
 #static var ugc_query_handle: int = 0
 
 @export var default_config: Config = null
-@export var default_preview_image: Texture2D = null
 
 func _ready() -> void:
 	mod_list = %ModList
@@ -77,55 +77,7 @@ func load_mod_list() -> void:
 	load_mods()
 	load_mods(true)
 
-	mod_list.clear()
-	for mod_element in config.mod_config:
-		var mod := find_mod(mod_element)
-		if mod == null:
-			continue
-		var item_text := get_mod_item_text(mod_element)
-		var item_icon := get_mod_item_icon(mod_element)
-		var item_index := mod_list.add_item(item_text, item_icon)
-		var item_bg_color := get_mod_item_bg_color(mod_element)
-		var item_icon_modulate := get_mod_item_icon_modulate(mod_element)
-		mod_list.set_item_custom_bg_color(item_index, item_bg_color)
-		mod_list.set_item_icon_modulate(item_index, item_icon_modulate)
-		mod_list.set_item_tooltip(item_index, mod.description)
-		mod_list.set_item_metadata(item_index, mod_element)
-
-func get_mod_item_text(mod_element: ModElement) -> String:
-	var mod := find_mod(mod_element)
-	var text := mod.name
-	if text.is_empty():
-		text = mod.id
-	if !mod_element.enabled:
-		text = "(已禁用) " + text
-	var tags: Array = mod.workshop_tags
-	if mod.workshop_id != 0:
-		tags.push_front("创意工坊")
-	var tags_string := ", ".join(tags.map(tr))
-	var utf8_length := tags_string.to_utf8_buffer().size()
-	var unicode_length := tags_string.length()
-	@warning_ignore("integer_division")
-	var full_width_chars := (utf8_length - unicode_length) / 3
-	text = IS.string_rpad(text, 80 - unicode_length - full_width_chars) + tags_string
-	return text
-
-func get_mod_item_icon(mod_element: ModElement) -> Texture2D:
-	var mod := find_mod(mod_element)
-	var item_icon := mod.workshop_preview_image
-	if item_icon != null:
-		return item_icon
-	return default_preview_image
-
-func get_mod_item_bg_color(mod_element: ModElement) -> Color:
-	if mod_element.enabled:
-		return Color(0.5, 0.5, 0.5, 0.5)
-	return Color(0, 0, 0, 0)
-
-func get_mod_item_icon_modulate(mod_element: ModElement) -> Color:
-	if mod_element.enabled:
-		return Color.WHITE
-	return Color.DIM_GRAY
+	mod_list.update()
 
 func load_mods(workshop: bool = false) -> void:
 	var mod_dirs: PackedStringArray = []
@@ -198,7 +150,7 @@ func load_mods(workshop: bool = false) -> void:
 
 		mods.append(mod)
 
-func find_mod(mod_element: ModElement) -> Mod:
+static func find_mod(mod_element: ModElement) -> Mod:
 	var mod_finder := func(mod: Mod) -> bool:
 		return mod.id == mod_element.name && mod.workshop_id == mod_element.workshop_item_id
 	var mod_index := mods.find_custom(mod_finder)
@@ -206,7 +158,7 @@ func find_mod(mod_element: ModElement) -> Mod:
 		return mods[mod_index]
 	return null
 
-func read_mod_config() -> void:
+static func read_mod_config() -> void:
 	var mod_config: Array[ModElement] = []
 	var mod_config_path := SAVE_DIR.path_join(MOD_CONFIG_FILE)
 	var parser = XMLParser.new()
@@ -229,6 +181,20 @@ func read_mod_config() -> void:
 		mod_element.workshop_item_id = int(attributes.workshop_item_id)
 		mod_config.append(mod_element)
 	config.mod_config = mod_config
+
+static func write_mod_config() -> void:
+	var mod_config_path := SAVE_DIR.path_join(MOD_CONFIG_FILE)
+	var root := XMLNode.new()
+	root.name = "Mods"
+	for mod_element in config.mod_config:
+		var child := XMLNode.new()
+		child.name = "Mod"
+		child.attributes.name = mod_element.name
+		child.attributes.enabled = 1 if mod_element.enabled else 0
+		child.attributes.settings_fold_open = 1 if mod_element.settings_fold_open else 0
+		child.attributes.workshop_item_id = mod_element.workshop_item_id
+		root.children.append(child)
+	root.dump_file(mod_config_path)
 
 func store() -> void:
 	var config_file := FileAccess.open(CONFIG_FILE, FileAccess.WRITE)
@@ -259,19 +225,6 @@ func _on_config_button_pressed() -> void:
 
 func _on_close_button_pressed() -> void:
 	get_tree().quit()
-
-
-func _on_mod_list_item_activated(index: int) -> void:
-	var mod_element: ModElement = mod_list.get_item_metadata(index)
-	mod_element.enabled = !mod_element.enabled
-	mod_list.set_item_text(index, get_mod_item_text(mod_element))
-	mod_list.set_item_custom_bg_color(index, get_mod_item_bg_color(mod_element))
-	mod_list.set_item_icon_modulate(index, get_mod_item_icon_modulate(mod_element))
-
-
-func _on_mod_list_item_clicked(index: int, _at_position: Vector2, mouse_button_index: int) -> void:
-	if mouse_button_index == MOUSE_BUTTON_RIGHT:
-		_on_mod_list_item_activated(index)
 
 
 func _on_refresh_button_pressed() -> void:
