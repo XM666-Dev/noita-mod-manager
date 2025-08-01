@@ -52,9 +52,9 @@ static func script_get_default_serialized_properties(script: Script) -> PackedSt
 	var property_filter := func(property: String) -> bool: return property != script_file
 	return property_list.map(property_mapper).filter(property_filter)
 
-static func string_rpad(string: String, min_length: int) -> String:
+static func string_rpad(string: String, min_length: int, min_count: int = 0) -> String:
 	var utf8_length := string.to_utf8_buffer().size()
 	var unicode_length := string.length()
 	@warning_ignore("integer_division")
 	var full_width_chars := (utf8_length - unicode_length) / 3
-	return string.rpad(maxi(min_length - full_width_chars, unicode_length + 1))
+	return string.rpad(maxi(min_length - full_width_chars, unicode_length + min_count))
