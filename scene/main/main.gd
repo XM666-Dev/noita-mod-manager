@@ -6,6 +6,7 @@ const SAVE_DIR: String = "C:/Users/Administrator/AppData/LocalLow/Nolla_Games_No
 const MOD_CONFIG_FILE: String = "save00/mod_config.xml"
 const EXECUTABLE_FILE: String = "noita.exe"
 const MODS_DIR: String = "mods"
+const PREVIEW_IMAGE_DIR: String = "user://preview_image"
 
 static var mod_list: ModList = null
 static var file_dialog: FileDialog = null
@@ -77,7 +78,10 @@ func load_mods(workshop: bool = false) -> void:
 	var mod_count := mod_dirs.size()
 	new_mods.resize(mod_count)
 	for mod_index in mod_count:
-		new_mods[mod_index] = Mod.new()
+		var mod := Mod.new()
+		if workshop:
+			mod.workshop_id = subscribed_items[mod_index]
+		new_mods[mod_index] = mod
 
 	if workshop:
 		Steam.ugc_query_completed.connect(on_ugc_query_completed.bind(new_mods), CONNECT_ONE_SHOT)
@@ -118,9 +122,6 @@ func load_mods(workshop: bool = false) -> void:
 				mod.ui_newgame_gfx_banner_bg = attributes.get("ui_newgame_gfx_banner_bg", "")
 				mod.ui_newgame_gfx_banner_fg = attributes.get("ui_newgame_gfx_banner_fg", "")
 
-		if workshop:
-			mod.workshop_id = int(mod_dir.get_file())
-
 		var workshop_xml_file := mod_dir.path_join("workshop.xml")
 		if FileAccess.file_exists(workshop_xml_file):
 			parser.open(workshop_xml_file)
@@ -151,10 +152,27 @@ func load_mods(workshop: bool = false) -> void:
 	mods.append_array(new_mods)
 
 static func on_ugc_query_completed(handle: int, _result: int, results_returned: int, _total_matching: int, _cached: bool, new_mods: Array[Mod]) -> void:
+	if http_request.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		http_request.cancel_request()
+		for connection in http_request.request_completed.get_connections():
+			http_request.request_completed.disconnect(connection.callable)
 	for index in results_returned:
-		var callable := on_request_completed.bind(new_mods[index])
-		http_request.request_completed.connect(callable, CONNECT_ONE_SHOT)
+		var mod := new_mods[index]
+		var tag_mapper := func(tag_index: int) -> String: return Steam.getQueryUGCTag(handle, index, tag_index)
+		var tag_formatter := func(tag: String) -> String: return tag.strip_edges()
+		var tags := range(Steam.getQueryUGCNumTags(handle, index)).map(tag_mapper).map(tag_formatter)
+		mod.workshop_tags = tags
+		var mod_element_finder := func(mod_element: ModElement) -> bool: return find_mod(mod_element) == mod
+		var mod_element_index := config.mod_config.find_custom(mod_element_finder)
+		mod_list.set_item_text(mod_element_index, mod_list.get_mod_item_text(config.mod_config[mod_element_index]))
+
 		var url := Steam.getQueryUGCPreviewURL(handle, index)
+		var preview_infos := find_mod_preview_image(mod.workshop_id)
+		if preview_infos.get("url") == url:
+			load_mod_preview_image(mod, preview_infos.get("image_file"))
+			continue
+		var callable := on_request_completed.bind(mod, url)
+		http_request.request_completed.connect(callable, CONNECT_ONE_SHOT)
 		var err := http_request.request(url)
 		if err == OK:
 			await http_request.request_completed
@@ -162,7 +180,7 @@ static func on_ugc_query_completed(handle: int, _result: int, results_returned: 
 			http_request.request_completed.disconnect(callable)
 	Steam.releaseQueryUGCRequest(handle)
 
-static func on_request_completed(_result: int, _response_code: int, headers: PackedStringArray, body: PackedByteArray, mod: Mod) -> void:
+static func on_request_completed(_result: int, _response_code: int, headers: PackedStringArray, body: PackedByteArray, mod: Mod, url: String) -> void:
 	var extension: String = ""
 	for header in headers:
 		var content_type := header.trim_prefix("Content-Type: ")
@@ -183,6 +201,33 @@ static func on_request_completed(_result: int, _response_code: int, headers: Pac
 		return
 	var image_texture: ImageTexture = mod.workshop_preview_image
 	image_texture.set_image(image)
+	save_mod_preview_image(mod, url)
+
+static func find_mod_preview_image(workshop_id: int) -> Dictionary:
+	if !DirAccess.dir_exists_absolute(PREVIEW_IMAGE_DIR):
+		return {}
+	var image_files := DirAccess.get_files_at(PREVIEW_IMAGE_DIR)
+	for image_file in image_files:
+		var infos := image_file.get_basename().split("_")
+		if infos.size() < 3:
+			continue
+		if infos[0] == str(workshop_id):
+			infos[0] = "https://images.steamusercontent.com/ugc"
+			infos.append("")
+			return {image_file = image_file, url = "/".join(infos)}
+	return {}
+
+static func load_mod_preview_image(mod: Mod, image_file: String) -> void:
+	var image := Image.load_from_file(PREVIEW_IMAGE_DIR.path_join(image_file))
+	var image_texture: ImageTexture = mod.workshop_preview_image
+	image_texture.set_image(image)
+
+static func save_mod_preview_image(mod: Mod, url: String) -> void:
+	var identifiers := url.rsplit("/", false, 2)
+	identifiers[0] = str(mod.workshop_id)
+	var image_file := PREVIEW_IMAGE_DIR.path_join("_".join(identifiers)) + ".png"
+	DirAccess.make_dir_absolute(PREVIEW_IMAGE_DIR)
+	mod.workshop_preview_image.get_image().save_png(image_file)
 
 static func find_mod(mod_element: ModElement) -> Mod:
 	var mod_finder := func(mod: Mod) -> bool:
