@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cud4qdib2vggq"]
+[gd_scene format=3 uid="uid://cud4qdib2vggq"]
 
 [ext_resource type="Script" uid="uid://b5b6b37784j24" path="res://scene/main/main.gd" id="1_am8c5"]
 [ext_resource type="Resource" uid="uid://de2vj408ny2e8" path="res://resource/config/default_config.tres" id="2_0imob"]
@@ -10,7 +10,7 @@
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0imob"]
 content_margin_left = 4.0
 
-[node name="Main" type="Control"]
+[node name="Main" type="Control" unique_id=1576675980]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_vertical = 2
 script = ExtResource("1_am8c5")
 default_config = ExtResource("2_0imob")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1882431346]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,33 +28,33 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Control" type="Control" parent="VBoxContainer"]
+[node name="Control" type="Control" parent="VBoxContainer" unique_id=1193229013]
 layout_mode = 2
 
-[node name="TitleBar" type="HBoxContainer" parent="VBoxContainer"]
+[node name="TitleBar" type="HBoxContainer" parent="VBoxContainer" unique_id=1601695224]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/TitleBar"]
+[node name="Label" type="Label" parent="VBoxContainer/TitleBar" unique_id=827193490]
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxEmpty_0imob")
 text = "Noita模组管理器"
 
-[node name="ConfigButton" type="Button" parent="VBoxContainer/TitleBar"]
+[node name="ConfigButton" type="Button" parent="VBoxContainer/TitleBar" unique_id=256641570]
 layout_mode = 2
 size_flags_horizontal = 10
 text = "设置"
 flat = true
 
-[node name="CloseButton" type="Button" parent="VBoxContainer/TitleBar"]
+[node name="CloseButton" type="Button" parent="VBoxContainer/TitleBar" unique_id=838104241]
 layout_mode = 2
 text = "关闭"
 flat = true
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=2022526421]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ModList" type="ItemList" parent="VBoxContainer/HBoxContainer"]
+[node name="ModList" type="ItemList" parent="VBoxContainer/HBoxContainer" unique_id=742724588]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -65,50 +65,50 @@ fixed_icon_size = Vector2i(64, 36)
 script = ExtResource("3_a0c6e")
 default_preview_image = ExtResource("3_qtsyf")
 
-[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer/HBoxContainer" unique_id=703864991]
 custom_minimum_size = Vector2(256, 0)
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/PanelContainer" unique_id=634237884]
 layout_mode = 2
 
-[node name="Control" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer"]
+[node name="Control" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer" unique_id=40985883]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer" unique_id=1773155222]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=709525180]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("StyleBoxEmpty_0imob")
 text = "搜索"
 horizontal_alignment = 1
 
-[node name="SearchEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="SearchEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=1017285206]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(192, 0)
 layout_mode = 2
 placeholder_text = "模组名..."
 
-[node name="Control" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="Control" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=1537729205]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer" unique_id=1704547594]
 layout_mode = 2
 
-[node name="Control" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer2"]
+[node name="Control" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer2" unique_id=2017295221]
 layout_mode = 2
 
-[node name="RefreshButton" type="Button" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer2"]
+[node name="RefreshButton" type="Button" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer2" unique_id=596736084]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "刷新"
 
-[node name="Control2" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer2"]
+[node name="Control2" type="Control" parent="VBoxContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer2" unique_id=1466603643]
 layout_mode = 2
 
-[node name="FileDialog" type="FileDialog" parent="."]
+[node name="FileDialog" type="FileDialog" parent="." unique_id=249772743]
 unique_name_in_owner = true
 title = "选择游戏目录"
 mode_overrides_title = false
@@ -116,7 +116,7 @@ file_mode = 2
 access = 2
 use_native_dialog = true
 
-[node name="AcceptDialog" type="AcceptDialog" parent="."]
+[node name="AcceptDialog" type="AcceptDialog" parent="." unique_id=1009105145]
 unique_name_in_owner = true
 title = "错误"
 initial_position = 1
@@ -124,11 +124,11 @@ force_native = true
 ok_button_text = "好的"
 dialog_text = "选择的目录不包含noita.exe实例，请重新选择！"
 
-[node name="ConfigPopup" parent="." instance=ExtResource("3_6vuhr")]
+[node name="ConfigPopup" parent="." unique_id=399941214 instance=ExtResource("3_6vuhr")]
 unique_name_in_owner = true
 visible = false
 
-[node name="HTTPRequest" type="HTTPRequest" parent="."]
+[node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1667154843]
 unique_name_in_owner = true
 use_threads = true
 

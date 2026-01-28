@@ -2,12 +2,15 @@ class_name Main extends Control
 
 const ModList := preload("res://scene/main/mod_list.gd")
 const CONFIG_FILE: String = "user://config.json"
-const SAVE_DIR: String = "C:/Users/Administrator/AppData/LocalLow/Nolla_Games_Noita"
+const LOCALAPPDATA: String = "LOCALAPPDATA"
+const LOCALAPPDATA_VARIABLE: String = "%%%s%%" % LOCALAPPDATA
+const SAVE_DIR: String = "%sLow/Nolla_Games_Noita" % LOCALAPPDATA_VARIABLE
 const MOD_CONFIG_FILE: String = "save00/mod_config.xml"
 const EXECUTABLE_FILE: String = "noita.exe"
 const MODS_DIR: String = "mods"
 const PREVIEW_IMAGE_DIR: String = "user://preview_image"
 
+static var save_dir: String = ""
 static var mod_list: ModList = null
 static var file_dialog: FileDialog = null
 static var accept_dialog: AcceptDialog = null
@@ -19,6 +22,8 @@ static var mods: Array[Mod] = []
 @export var default_config: Config = null
 
 func _ready() -> void:
+	save_dir = SAVE_DIR.replace(LOCALAPPDATA_VARIABLE, OS.get_environment(LOCALAPPDATA))
+	
 	mod_list = %ModList
 	file_dialog = %FileDialog
 	accept_dialog = %AcceptDialog
@@ -239,7 +244,7 @@ static func find_mod(mod_element: ModElement) -> Mod:
 
 static func read_mod_config() -> void:
 	var mod_config: Array[ModElement] = []
-	var mod_config_path := SAVE_DIR.path_join(MOD_CONFIG_FILE)
+	var mod_config_path := save_dir.path_join(MOD_CONFIG_FILE)
 	var parser = XMLParser.new()
 	parser.open(mod_config_path)
 	while parser.read() != ERR_FILE_EOF:
@@ -262,7 +267,7 @@ static func read_mod_config() -> void:
 	config.mod_config = mod_config
 
 static func write_mod_config() -> void:
-	var mod_config_path := SAVE_DIR.path_join(MOD_CONFIG_FILE)
+	var mod_config_path := save_dir.path_join(MOD_CONFIG_FILE)
 	var root := XMLNode.new()
 	root.name = "Mods"
 	for mod_element in config.mod_config:
