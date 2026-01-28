@@ -13,6 +13,7 @@ config_version=5
 config/name="NoitaModManager"
 run/main_scene="uid://cud4qdib2vggq"
 config/features=PackedStringArray("4.6", "GL Compatibility")
+run/low_processor_mode=true
 config/windows_native_icon="res://icon.ico"
 
 [display]
